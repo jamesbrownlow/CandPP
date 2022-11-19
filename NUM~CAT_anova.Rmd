@@ -1,0 +1,111 @@
+---
+title: "NUM~CAT anova"
+author: "Dr K"
+date: "fall 2020"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r include=FALSE,echo=FALSE}
+require(knitr)
+require(tidyverse)
+require(tigerstats)
+
+```
+
+```{r initial-setup, eval=T, echo=FALSE, include=FALSE}
+#install.packages('reticulate')
+reticulate::virtualenv_create('testEnv')
+reticulate::use_virtualenv('testEnv')
+reticulate::virtualenv_install('testEnv', packages = 'numpy')
+reticulate::virtualenv_install('testEnv', packages = 'plotnine')
+reticulate::virtualenv_install('testEnv', packages = 'pandas')
+reticulate::virtualenv_install('testEnv', packages = 'scipy')
+reticulate::virtualenv_install('testEnv', packages = 'pingouin')
+
+```
+
+## Setup Block
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+reticulate::use_virtualenv('testEnv')
+```
+
+
+```{python}
+import pandas as pd
+GSS = pd.read_csv('GSScsv.csv')
+type(GSS)
+GSS.columns
+```
+
+# Introduction
+
+<!--In this section you explain what you are trying to show.  Where did the data come from?  What is the research or other question you are trying to answer?!-->
+
+The data is in the file GSScsv.csv and came from the 2018 General Social Survey.  The question to answer is to resolve this hypothesis.  
+$H_0$ There is no difference between the average score on the WORDSUM test and level of schooling DEGREE  
+$H_a$ There is a significant difference in average score on the WORDSUM test between at least two levels of DEGREE  
+
+# Methods
+
+<!--Decide on your methods:  use "variable analysis" or other appropriate descriptors.  Make sure to choose at least one graphical method and at least one numerical method.!-->
+
+# Results
+
+<!--Divide this section into two sub-sections:  One for your descriptive  results and one for your inferential results.!-->
+
+## Descriptive Results
+
+### Graphical Descriptive Results
+
+<!--Graphical results here.  Make sure to show your code.  Provide appropriate labels for axes, giving units if possible, and provide a good title for the graph, too.  Use the graphical results to describe the patterns if any that exist in the data as focused toward the research question!-->
+
+```{python}
+from plotnine import * 
+#GSS.boxplot(column='WORDSUM',by= 'DEGREE')
+#plt.show()
+ggplot(GSS) + aes(x='DEGREE', y = 'WORDSUM')+geom_boxplot() + theme(
+    #panel_background=element_rect(fill=gray, alpha=.2),
+    #dpi=120,
+    figure_size=(8, 8), # inches
+    aspect_ratio=1/3    # height:width
+)
+
+```
+
+### Numerical Descriptive Results
+
+<!--Numerical results go here. Use the numerical results to describe the patterns if any that exist in the data as focused toward the research question!-->
+
+```{python}
+GSS.groupby("DEGREE")['WORDSUM'].describe().reset_index()	
+```
+
+## Inferential Results
+
+<!--State hypothesis clearly.  Make sure your discussion of the inferential test covers all the aspects that the test output produces, such as test statistic, p-value etc.  Make a decision about the null hypothesis, explain the assumptions on which the selected test/procedure was based, and why the chosen procedure satisfys the assumptions and is appropriate to answer the research question!-->
+
+
+```{python}
+import pingouin as pg
+import pandas as pd
+import numpy as np
+
+
+#perform Welch's ANOVA
+pg.welch_anova(dv='WORDSUM', between='DEGREE', data=GSS)
+
+```
+
+
+```{python}
+pg.pairwise_tukey(dv='WORDSUM', between='DEGREE', data=GSS)
+```
+
+
+# Discussion and Conclusion
+
+<!--Discussion and conclusion here.  If you found a relationship be sure to consider whether the relationship occurs because one of the variavbles causes the other, or whether they perhasps are related for some other reason.  Watch the chapter 6 videos from the GeorgeTown videos collection.!-->
